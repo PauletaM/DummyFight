@@ -1,0 +1,16 @@
+DONE: UNDO/REDO for links
+TODO: Undo/Redo for + and - buttons, 
+TODO: Undo/Redo for link selection
+
+DONE: Diplay Watch And Think sub options when add them
+DONE: + and - buttons methods
+TODO: Clamp Value to zero
+
+DONE: Store data from the current array sequence on a static class
+TODO: Store them on a scriptable object
+
+DONE: Move links anywhere on the stack
+TODO: UI animations and UX design
+
+
+

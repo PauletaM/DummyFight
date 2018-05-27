@@ -1,12 +1,13 @@
 ﻿public class Link 
-{
-	public LinkType actType;
+{    
+    public LinkType type;
 	public bool hasDisplay;
 	public int caseIdle, caseAttack, caseDodge;
+    public bool selected;    
 
 	public Link( LinkType type, bool hasDisplay )
 	{
-		this.actType = type;
+		this.type = type;
 		this.hasDisplay = hasDisplay;
 	}
 }

@@ -16,12 +16,13 @@ public class SubItem : MonoBehaviour
     private Image img;
 	public Link link;
 	public SubItemType type;
+    public int index;
 
     private void Awake()
     {
         label = transform.GetChild(0).GetComponent<Text>();
         button = GetComponent<Button>();
-        img = GetComponent<Image>();
+        img = GetComponent<Image>();        
     }
 
     public void Increase()
