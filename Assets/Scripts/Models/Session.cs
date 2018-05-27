@@ -2,7 +2,8 @@
 
 public class Session
 {
-    public ArrayList actionList;
+    public static ArrayList actionList;
     
+
 
 }

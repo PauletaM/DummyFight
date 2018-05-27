@@ -1,12 +1,21 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class Item : MonoBehaviour
+public enum SubItemType
+{
+	CaseIdle,
+	CaseAttack,
+	CaseDodge
+}
+
+public class SubItem : MonoBehaviour
 {
     private int value;
     private Text label;
     public Button button;
     private Image img;
+	public Link link;
+	public SubItemType type;
 
     private void Awake()
     {
@@ -19,12 +28,39 @@ public class Item : MonoBehaviour
     {
         value++;
         label.text = "" + value;
+
+		switch(type)
+		{
+			case SubItemType.CaseAttack:
+				link.caseAttack++;
+				break;
+			case SubItemType.CaseDodge:
+				link.caseDodge++;
+				break;
+			case SubItemType.CaseIdle:
+				link.caseIdle++;
+				break;
+		}
+
     }
 
     public void Decrease()
     {
         value--;
         label.text = "" + value;
+
+		switch(type)
+		{
+			case SubItemType.CaseAttack:
+				link.caseAttack--;
+				break;
+			case SubItemType.CaseDodge:
+				link.caseDodge--;
+				break;
+			case SubItemType.CaseIdle:
+				link.caseIdle--;
+				break;
+		}
     }
 
     public void Highlight()
