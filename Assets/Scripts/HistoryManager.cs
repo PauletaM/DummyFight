@@ -17,14 +17,19 @@ public enum ActionType
 	DecreaseValue,
     SelectSubItem,
     SelectBackItem,
-    DeselectSubItem
+    DeselectSubItem,
+    MoveOn,
+    MoveBack,
+    SelectLink,
+    BackSelect
 }
 
 public class HistoryAction
 {
 	public ActionType actType;
 	public ActionType backType;
-	public SubItem subItem, backSub;    
+	public SubItem subItem, backSub;
+    public int index, backIndex;
 
 	public HistoryAction( ActionType type, ActionType backType )
 	{
@@ -38,6 +43,14 @@ public class HistoryAction
         this.backType = backType;
         this.subItem = subItem;
         this.backSub = backSub;        
+    }
+
+    public HistoryAction(ActionType type, ActionType backType, int index, int backIndex)
+    {
+        this.actType = type;
+        this.backType = backType;
+        this.index = index;
+        this.backIndex = backIndex;
     }
 
 }
