@@ -66,11 +66,11 @@ public class Manager : MonoBehaviour {
             MinusSign(true);
             break;
         case ActionType.MoveOn:
-            MoveLink(HistoryManager.instance.GetCurrent().backIndex, HistoryManager.instance.GetCurrent().index, true);
+                MoveLink(HistoryManager.instance.GetCurrent().index, HistoryManager.instance.GetCurrent().backIndex, true);                
             break;
         case ActionType.MoveBack:
-            MoveLink(HistoryManager.instance.GetCurrent().index, HistoryManager.instance.GetCurrent().backIndex, true);
-            break;
+                MoveLink(HistoryManager.instance.GetCurrent().backIndex, HistoryManager.instance.GetCurrent().index, true);
+                break;
         case ActionType.SelectLink:
             SelectLinkItem(HistoryManager.instance.GetCurrent().index, true);
             break;
