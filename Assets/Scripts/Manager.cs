@@ -50,16 +50,40 @@ public class Manager : MonoBehaviour {
 		case ActionType.RemoveWatch:
 			RemoveLink(true, Session.actionList.Count-1);
 			break;
-		}
+        case ActionType.SelectSubItem:
+            Highlight(HistoryManager.instance.GetCurrent().subItem, true);
+            break;
+        case ActionType.SelectBackItem:
+            Highlight(HistoryManager.instance.GetCurrent().backSub, true);
+            break;
+        case ActionType.DeselectSubItem:
+            Highlight(null, true);
+            break;
+        }
 	}
 
-    public void Highlight( SubItem item )
+    public void Highlight( SubItem item, bool fromHistory )
     {
+        if ( !fromHistory )
+        {
+            if ( currentSelected == null )
+            {
+                HistoryAction ha = new HistoryAction(ActionType.SelectSubItem, ActionType.DeselectSubItem, item, null);
+                HistoryManager.instance.AddHistory(ha);
+            }
+            else
+            {
+                HistoryAction ha = new HistoryAction(ActionType.SelectSubItem, ActionType.SelectBackItem, item, currentSelected);
+                HistoryManager.instance.AddHistory(ha);
+            }
+        }
+        
         currentSelected = item;
         foreach ( SubItem i in gtDisplayList )
             i.Dark();
-        item.Highlight();              
 
+        if ( item != null )
+            item.Highlight();
     }
 
 	public void AddSubItem( Transform actBtn, Link link )
@@ -73,7 +97,7 @@ public class Manager : MonoBehaviour {
             item.index = gtDisplayList.Count;
 			gtDisplayList.Add(item);
             btn.onClick.RemoveAllListeners();
-            btn.onClick.AddListener(() => Highlight(item));
+            btn.onClick.AddListener(() => Highlight(item, false));
 
             go.GetComponent<SubItem>().link = link;
 		}  

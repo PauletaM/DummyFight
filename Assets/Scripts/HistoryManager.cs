@@ -16,6 +16,7 @@ public enum ActionType
 	IncreaseValue,
 	DecreaseValue,
     SelectSubItem,
+    SelectBackItem,
     DeselectSubItem
 }
 
@@ -23,7 +24,7 @@ public class HistoryAction
 {
 	public ActionType actType;
 	public ActionType backType;
-	public int subItemIndex;	
+	public SubItem subItem, backSub;    
 
 	public HistoryAction( ActionType type, ActionType backType )
 	{
@@ -31,11 +32,12 @@ public class HistoryAction
 		this.backType = backType;
 	}
 
-    public HistoryAction(int index)
+    public HistoryAction(ActionType type, ActionType backType, SubItem subItem, SubItem backSub)
     {
-        this.actType = ActionType.SelectSubItem;
-        this.backType = ActionType.DeselectSubItem;
-        this.subItemIndex = index;
+        this.actType = type;
+        this.backType = backType;
+        this.subItem = subItem;
+        this.backSub = backSub;        
     }
 
 }
@@ -55,6 +57,11 @@ public class HistoryManager : MonoBehaviour
 		historyList = new ArrayList();
 		index = -1;
 	}
+    
+    public HistoryAction GetCurrent()
+    {
+        return (HistoryAction)historyList[ index ];
+    }
 
 	public void AddHistory( HistoryAction ha )
 	{
