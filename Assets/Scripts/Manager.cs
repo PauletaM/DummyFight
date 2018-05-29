@@ -59,6 +59,12 @@ public class Manager : MonoBehaviour {
         case ActionType.DeselectSubItem:
             Highlight(null, true);
             break;
+        case ActionType.IncreaseValue:
+            PlusClick(true);
+            break;
+        case ActionType.DecreaseValue:
+            MinusSign(true);
+            break;
         }
 	}
 
