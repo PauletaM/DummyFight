@@ -3,5 +3,6 @@
 	Think,
 	Watch,
 	Attack,
-	Dodge
+	Dodge,
+    Empty
 }

@@ -26,7 +26,7 @@ public class SubItem : MonoBehaviour
     }
 
     public void Increase()
-    {
+    {        
         value++;
         label.text = "" + value;
 

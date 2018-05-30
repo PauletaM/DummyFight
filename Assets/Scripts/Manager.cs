@@ -6,10 +6,12 @@ using UnityEngine.UI;
 
 public class Manager : MonoBehaviour {
 
-    public GameObject lThink, lWatch, lAttack, lDodge;
+    public GameObject lThink, lWatch, lAttack, lDodge, lEmpty;
     private ArrayList gtDisplayList;
     private SubItem currentSelected;
     public Transform content;
+
+    public static Manager instance;
 
     private void Awake()
     {
@@ -18,8 +20,7 @@ public class Manager : MonoBehaviour {
 		HistoryManager.instance.OnRedo += CheckActionAndExec;
 		HistoryManager.instance.OnUndo += CheckActionAndExec;
 
-
-
+        instance = this;
     }
 
 	void CheckActionAndExec( ActionType type )
@@ -121,7 +122,6 @@ public class Manager : MonoBehaviour {
 		}  
 	}
     
-
     public void RemoveLink( bool hasDisplay, int index )
 	{
 		//index = Session.actionList.Count - 1;
@@ -131,15 +131,14 @@ public class Manager : MonoBehaviour {
 		if ( hasDisplay )
 		{
 			gtDisplayList.Remove( index );
-			gtDisplayList.Remove( index - 1);
-			gtDisplayList.Remove( index - 2);
+			gtDisplayList.Remove( index -1);
+			gtDisplayList.Remove( index -2);        
 		}
 
 		Session.actionList.RemoveAt(index);
 
         SelectLinkItem(Session.actionList.Count - 1, true);
 	}
-
 
     private void SelectLinkItem(int index, bool fromHistory)
     {
@@ -168,25 +167,25 @@ public class Manager : MonoBehaviour {
         Session.currentSelected = index;
 
     }
-
-    public GameObject linkEmpty;
-    private void RefreshUI()
+    
+    IEnumerator RemoveChilds()
     {
-        gtDisplayList.Clear();
-        for ( int i = 0; i < Session.actionList.Count; i++ )
+        for ( int i = 0; i < content.childCount; i++ )
         {
             GameObject go = content.GetChild(0).gameObject;
             go.transform.SetParent(null);
-            Destroy(go);            
-        }        
+            Destroy(go);
+            yield return new WaitForEndOfFrame();
+        }
 
-        for( int i = 0; i < Session.actionList.Count; i++ )
+        for ( int i = 0; i < Session.actionList.Count; i++ )
         {
-            Link link = (Link)Session.actionList[ i ];
+            Link link = ( Link )Session.actionList[ i ];
             switch ( link.type )
             {
                 case LinkType.Attack:
                     GameObject attack = Instantiate(lAttack, content);
+                    attack.AddComponent<LinkDrag>().index = i;
                     Button btna = attack.GetComponent<Button>();
                     btna.onClick.RemoveAllListeners();
                     int indexa = i;
@@ -194,6 +193,7 @@ public class Manager : MonoBehaviour {
                     break;
                 case LinkType.Dodge:
                     GameObject dodge = Instantiate(lDodge, content);
+                    dodge.AddComponent<LinkDrag>().index = i;
                     Button btnd = dodge.GetComponent<Button>();
                     btnd.onClick.RemoveAllListeners();
                     int indexd = i;
@@ -201,6 +201,7 @@ public class Manager : MonoBehaviour {
                     break;
                 case LinkType.Think:
                     GameObject think = Instantiate(lThink, content);
+                    think.AddComponent<LinkDrag>().index = i;
                     Button btn = think.GetComponent<Button>();
                     btn.onClick.RemoveAllListeners();
                     int index = i;
@@ -213,6 +214,7 @@ public class Manager : MonoBehaviour {
                     break;
                 case LinkType.Watch:
                     GameObject watch = Instantiate(lWatch, content);
+                    watch.AddComponent<LinkDrag>().index = i;
                     Button btnw = watch.GetComponent<Button>();
                     btnw.onClick.RemoveAllListeners();
                     int indexw = i;
@@ -223,11 +225,19 @@ public class Manager : MonoBehaviour {
                     watch.transform.GetChild(1).GetChild(2).GetChild(0).GetComponent<Text>().text = "" + link.caseDodge;
                     AddSubItem(watch.transform.GetChild(1), link);
                     break;
+                case LinkType.Empty:
+                    GameObject empty = Instantiate(lEmpty, content);
+                    break;
             }
         }
 
         content.GetChild(Session.currentSelected).GetComponent<Image>().color = Color.blue;
-        
+    }
+
+    public void RefreshUI()
+    {
+        gtDisplayList.Clear();
+        StartCoroutine(RemoveChilds());        
     }
 
     void MoveLink( int current, int target, bool fromHistory )
@@ -270,13 +280,13 @@ public class Manager : MonoBehaviour {
         
     }
 
-
     public void AddWatch(bool fromHistory)
     {
-        GameObject act = Instantiate(lWatch, content);
+        GameObject act = Instantiate(lWatch, content);        
         Button btn = act.GetComponent<Button>();
         btn.onClick.RemoveAllListeners();
         int count = Session.actionList.Count;
+        act.AddComponent<LinkDrag>().index = count;
         btn.onClick.AddListener(() => SelectLinkItem(count, false));        
         content.GetComponent<RectTransform>().sizeDelta += new Vector2(200, 0);
         Transform actBtn = act.transform.GetChild(1);
@@ -304,6 +314,7 @@ public class Manager : MonoBehaviour {
     public void AddThink( bool fromHistory )
     {
 		GameObject act = Instantiate(lThink, content);
+        act.AddComponent<LinkDrag>();
         Button btn = act.GetComponent<Button>();
         btn.onClick.RemoveAllListeners();
         int count = Session.actionList.Count;
@@ -333,6 +344,7 @@ public class Manager : MonoBehaviour {
 	public void AddAttack(bool fromHistory)
     {
         GameObject act = Instantiate(lAttack, content);
+        act.AddComponent<LinkDrag>();
 		content.GetComponent<RectTransform>().sizeDelta += new Vector2(200, 0);
         Button btn = act.GetComponent<Button>();
         btn.onClick.RemoveAllListeners();
@@ -357,7 +369,8 @@ public class Manager : MonoBehaviour {
 	public void AddDodge(bool fromHistory)
     {
         GameObject act = Instantiate(lDodge, content);
-		content.GetComponent<RectTransform>().sizeDelta += new Vector2(200, 0);
+        act.AddComponent<LinkDrag>();
+        content.GetComponent<RectTransform>().sizeDelta += new Vector2(200, 0);
         Button btn = act.GetComponent<Button>();
         btn.onClick.RemoveAllListeners();
         int count = Session.actionList.Count;
