@@ -1,57 +1,61 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
-public class LinkDrag : MonoBehaviour, IDragHandler, IPointerUpHandler
+public class LinkDrag : MonoBehaviour, IDragHandler, IPointerUpHandler, IPointerEnterHandler
 {
-    private bool dragging, linkadded;
-    private Transform parent, canvas, shadow;
-    private RectTransform rectTrans;
-    public int index;
-    private Link link;
+    private bool dragging;
+    private Image img;
+    private Transform content;
 
     void Awake()
     {
-        canvas = GameObject.FindGameObjectWithTag("canvas").transform;
-        shadow = GameObject.FindGameObjectWithTag("shadow").transform;
-        parent = transform.parent;
-        rectTrans = GetComponent<RectTransform>();        
+        img = GetComponent<Image>();
+        content = transform.parent;
     }
-
 
     public void OnDrag(PointerEventData eventData)
     {
-        dragging = true;
-        if ( !linkadded )
+        if ( !dragging )
         {
-            linkadded = true;
-            transform.SetParent(canvas);
-            Link empty = new Link(LinkType.Empty, false);
-            link = (Link)Session.actionList[ index ];
-            Session.actionList[ index ] = empty;            
-            Manager.instance.RefreshUI();
-        }        
+            Session.dragging = true;
+            Session.currentDrag = transform.GetSiblingIndex();
+            dragging = true;
+            img.color = Color.yellow;
+        }       
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
         if ( dragging )
         {
-            dragging = false;            
-            linkadded = false;            
-            Session.actionList[ index ] = link;
-            Manager.instance.RefreshUI();
-            Destroy(gameObject);
+            Session.dragging = false;
+            dragging = false;
+            img.color = Color.white;
         }        
-    }
+    }    
 
-    void Update()
+    public void OnPointerEnter(PointerEventData eventData)
     {
-        if ( dragging )
+        if ( Session.dragging )
         {
-            rectTrans.position = Input.mousePosition;
+            int index = transform.GetSiblingIndex();
+            if ( index != Session.currentDrag )
+            {
+                //if ( index + 1 > Session.actionList.Count - 1 )
+                //    return;
+
+                //if ( index - 1 < 0 )
+                //    return;
+
+                int thisIndex = transform.GetSiblingIndex();
+                int sessionindex = Session.currentDrag;
+
+                content.GetChild(Session.currentDrag).SetSiblingIndex(thisIndex);
+                transform.SetSiblingIndex(sessionindex);
+
+                Session.currentDrag = thisIndex;
+            }
         }
     }
-
 }

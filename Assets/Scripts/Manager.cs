@@ -184,24 +184,21 @@ public class Manager : MonoBehaviour {
             switch ( link.type )
             {
                 case LinkType.Attack:
-                    GameObject attack = Instantiate(lAttack, content);
-                    attack.AddComponent<LinkDrag>().index = i;
+                    GameObject attack = Instantiate(lAttack, content);                    
                     Button btna = attack.GetComponent<Button>();
                     btna.onClick.RemoveAllListeners();
                     int indexa = i;
                     btna.onClick.AddListener(() => SelectLinkItem(indexa, false));
                     break;
                 case LinkType.Dodge:
-                    GameObject dodge = Instantiate(lDodge, content);
-                    dodge.AddComponent<LinkDrag>().index = i;
+                    GameObject dodge = Instantiate(lDodge, content);                    
                     Button btnd = dodge.GetComponent<Button>();
                     btnd.onClick.RemoveAllListeners();
                     int indexd = i;
                     btnd.onClick.AddListener(() => SelectLinkItem(indexd, false));
                     break;
                 case LinkType.Think:
-                    GameObject think = Instantiate(lThink, content);
-                    think.AddComponent<LinkDrag>().index = i;
+                    GameObject think = Instantiate(lThink, content);                    
                     Button btn = think.GetComponent<Button>();
                     btn.onClick.RemoveAllListeners();
                     int index = i;
@@ -213,8 +210,7 @@ public class Manager : MonoBehaviour {
                     AddSubItem(think.transform.GetChild(1), link);
                     break;
                 case LinkType.Watch:
-                    GameObject watch = Instantiate(lWatch, content);
-                    watch.AddComponent<LinkDrag>().index = i;
+                    GameObject watch = Instantiate(lWatch, content);                    
                     Button btnw = watch.GetComponent<Button>();
                     btnw.onClick.RemoveAllListeners();
                     int indexw = i;
@@ -282,11 +278,11 @@ public class Manager : MonoBehaviour {
 
     public void AddWatch(bool fromHistory)
     {
-        GameObject act = Instantiate(lWatch, content);        
+        GameObject act = Instantiate(lWatch, content);
+        act.AddComponent<LinkDrag>();
         Button btn = act.GetComponent<Button>();
         btn.onClick.RemoveAllListeners();
-        int count = Session.actionList.Count;
-        act.AddComponent<LinkDrag>().index = count;
+        int count = Session.actionList.Count;        
         btn.onClick.AddListener(() => SelectLinkItem(count, false));        
         content.GetComponent<RectTransform>().sizeDelta += new Vector2(200, 0);
         Transform actBtn = act.transform.GetChild(1);
