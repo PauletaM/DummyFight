@@ -16,12 +16,21 @@ public class Manager : MonoBehaviour {
     private void Awake()
     {
         gtDisplayList = new ArrayList();
-		Session.actionList = new ArrayList();
+		Session.actionList = LoadFromDatabase();
+		BuildUIFromDatabase();
 		HistoryManager.instance.OnRedo += CheckActionAndExec;
 		HistoryManager.instance.OnUndo += CheckActionAndExec;
 
         instance = this;
     }
+
+	public ArrayList LoadFromDatabase()
+	{
+		ArrayList list = new ArrayList();
+		foreach( Link l in database.linkList )
+			list.Add(l);
+		return list;
+	}
 
 	void CheckActionAndExec( ActionType type )
 	{
@@ -67,18 +76,22 @@ public class Manager : MonoBehaviour {
             MinusSign(true);
             break;
         case ActionType.MoveOn:
-                MoveLink(HistoryManager.instance.GetCurrent().index, HistoryManager.instance.GetCurrent().backIndex, true);                
+            MoveLink(HistoryManager.instance.GetCurrent().index, HistoryManager.instance.GetCurrent().backIndex, true);                
             break;
         case ActionType.MoveBack:
-                MoveLink(HistoryManager.instance.GetCurrent().backIndex, HistoryManager.instance.GetCurrent().index, true);
-                break;
-        case ActionType.SelectLink:
-            SelectLinkItem(HistoryManager.instance.GetCurrent().index, true);
-            break;
-        case ActionType.BackSelect:
-            SelectLinkItem(HistoryManager.instance.GetCurrent().backIndex, true);
-            break;
+            MoveLink(HistoryManager.instance.GetCurrent().backIndex, HistoryManager.instance.GetCurrent().index, true);
+			break;
         }
+	}
+
+
+	void MoveLink( int current, int target, bool fromHistory )
+	{        
+		Transform curTrns = content.GetChild(current);
+		Transform tgtTrns = content.GetChild(target);
+
+		curTrns.SetSiblingIndex(target);
+		tgtTrns.SetSiblingIndex(current);
 	}
 
     public void Highlight( SubItem item, bool fromHistory )
@@ -136,144 +149,50 @@ public class Manager : MonoBehaviour {
 		}
 
 		Session.actionList.RemoveAt(index);
-
-        SelectLinkItem(Session.actionList.Count - 1, true);
 	}
 
-    private void SelectLinkItem(int index, bool fromHistory)
+    public void BuildUIFromDatabase()
     {
-        if ( index < 0 )
-            return;
-
-        for ( int i = 0; i < content.childCount; i++ )        
-            content.GetChild(i).GetComponent<Image>().color = Color.white;
-        content.GetChild(index).GetComponent<Image>().color = Color.blue;
-
-        for ( int i = 0; i < Session.actionList.Count; i++ )
-        {
-            Link l = ( Link )Session.actionList[ index ];
-            l.selected = false;
-        }
-
-        Link link = (Link)Session.actionList[ index ];
-        link.selected = true;        
-        
-        if ( !fromHistory )
-        {
-            HistoryAction ha = new HistoryAction(ActionType.SelectLink, ActionType.BackSelect, index, Session.currentSelected);
-            HistoryManager.instance.AddHistory(ha);
-        }
-
-        Session.currentSelected = index;
-
-    }
-    
-    IEnumerator RemoveChilds()
-    {
-        for ( int i = 0; i < content.childCount; i++ )
-        {
-            GameObject go = content.GetChild(0).gameObject;
-            go.transform.SetParent(null);
-            Destroy(go);
-            yield return new WaitForEndOfFrame();
-        }
-
-        for ( int i = 0; i < Session.actionList.Count; i++ )
-        {
-            Link link = ( Link )Session.actionList[ i ];
-            switch ( link.type )
-            {
-                case LinkType.Attack:
-                    GameObject attack = Instantiate(lAttack, content);                    
-                    Button btna = attack.GetComponent<Button>();
-                    btna.onClick.RemoveAllListeners();
-                    int indexa = i;
-                    btna.onClick.AddListener(() => SelectLinkItem(indexa, false));
-                    break;
-                case LinkType.Dodge:
-                    GameObject dodge = Instantiate(lDodge, content);                    
-                    Button btnd = dodge.GetComponent<Button>();
-                    btnd.onClick.RemoveAllListeners();
-                    int indexd = i;
-                    btnd.onClick.AddListener(() => SelectLinkItem(indexd, false));
-                    break;
-                case LinkType.Think:
-                    GameObject think = Instantiate(lThink, content);                    
-                    Button btn = think.GetComponent<Button>();
-                    btn.onClick.RemoveAllListeners();
-                    int index = i;
-                    btn.onClick.AddListener(() => SelectLinkItem(index, false));
-                    think.transform.GetChild(1).gameObject.SetActive(true);
-                    think.transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<Text>().text = "" + link.caseIdle;
-                    think.transform.GetChild(1).GetChild(1).GetChild(0).GetComponent<Text>().text = "" + link.caseAttack;
-                    think.transform.GetChild(1).GetChild(2).GetChild(0).GetComponent<Text>().text = "" + link.caseDodge;
-                    AddSubItem(think.transform.GetChild(1), link);
-                    break;
-                case LinkType.Watch:
-                    GameObject watch = Instantiate(lWatch, content);                    
-                    Button btnw = watch.GetComponent<Button>();
-                    btnw.onClick.RemoveAllListeners();
-                    int indexw = i;
-                    btnw.onClick.AddListener(() => SelectLinkItem(indexw, false));
-                    watch.transform.GetChild(1).gameObject.SetActive(true);
-                    watch.transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<Text>().text = "" + link.caseIdle;
-                    watch.transform.GetChild(1).GetChild(1).GetChild(0).GetComponent<Text>().text = "" + link.caseAttack;
-                    watch.transform.GetChild(1).GetChild(2).GetChild(0).GetComponent<Text>().text = "" + link.caseDodge;
-                    AddSubItem(watch.transform.GetChild(1), link);
-                    break;
-                case LinkType.Empty:
-                    GameObject empty = Instantiate(lEmpty, content);
-                    break;
-            }
-        }
-
-        content.GetChild(Session.currentSelected).GetComponent<Image>().color = Color.blue;
-    }
-
-    public void RefreshUI()
-    {
-        gtDisplayList.Clear();
-        StartCoroutine(RemoveChilds());        
-    }
-
-    void MoveLink( int current, int target, bool fromHistory )
-    {        
-        if ( !fromHistory )
-        {
-            HistoryAction ha = new HistoryAction(ActionType.MoveOn, ActionType.MoveBack, current, target);
-            HistoryManager.instance.AddHistory(ha);
-        }
-
-        Link pivot = ( Link )Session.actionList[ current ];
-        Session.actionList[ current ] = Session.actionList[ target ];
-        Session.actionList[ target ] = pivot;
-
-        Session.currentSelected = target;
-        RefreshUI();
-    }
-
-    public void MoveLeft()
-    {
-        if ( Session.currentSelected - 1 == -1 )
-        {
-            Mathf.Clamp(Session.currentSelected, 0, Session.actionList.Count - 1);
-            return;
-        }
-        MoveLink( Session.currentSelected, Session.currentSelected - 1, false );
-        
-    }    
-
-    public void MoveRight()
-    {
-        if ( Session.currentSelected + 1 == Session.actionList.Count )
-        {
-            Mathf.Clamp(Session.currentSelected, 0, Session.actionList.Count - 1);
-            return;
-        }
-
-        MoveLink(Session.currentSelected, Session.currentSelected + 1, false);
-        
-        
+		for ( int i = 0; i < Session.actionList.Count; i++ )
+		{
+			Link link = ( Link )Session.actionList[ i ];
+			switch ( link.type )
+			{
+			case LinkType.Attack:
+				GameObject attack = Instantiate(lAttack, content);   
+				attack.AddComponent<LinkDrag>();
+				content.GetComponent<RectTransform>().sizeDelta += new Vector2(200, 0);
+				break;
+			case LinkType.Dodge:
+				GameObject dodge = Instantiate(lDodge, content);     
+				dodge.AddComponent<LinkDrag>();
+				content.GetComponent<RectTransform>().sizeDelta += new Vector2(200, 0);
+				break;
+			case LinkType.Think:
+				GameObject think = Instantiate(lThink, content);   
+				think.AddComponent<LinkDrag>();
+				content.GetComponent<RectTransform>().sizeDelta += new Vector2(200, 0);
+				think.transform.GetChild(1).gameObject.SetActive(true);
+				think.transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<Text>().text = "" + link.caseIdle;
+				think.transform.GetChild(1).GetChild(1).GetChild(0).GetComponent<Text>().text = "" + link.caseAttack;
+				think.transform.GetChild(1).GetChild(2).GetChild(0).GetComponent<Text>().text = "" + link.caseDodge;
+				AddSubItem(think.transform.GetChild(1), link);
+				break;
+			case LinkType.Watch:
+				GameObject watch = Instantiate(lWatch, content);  
+				watch.AddComponent<LinkDrag>();
+				content.GetComponent<RectTransform>().sizeDelta += new Vector2(200, 0);
+				watch.transform.GetChild(1).gameObject.SetActive(true);
+				watch.transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<Text>().text = "" + link.caseIdle;
+				watch.transform.GetChild(1).GetChild(1).GetChild(0).GetComponent<Text>().text = "" + link.caseAttack;
+				watch.transform.GetChild(1).GetChild(2).GetChild(0).GetComponent<Text>().text = "" + link.caseDodge;
+				AddSubItem(watch.transform.GetChild(1), link);
+				break;
+			case LinkType.Empty:
+				GameObject empty = Instantiate(lEmpty, content);
+				break;
+			}
+		}
     }
 
     public void AddWatch(bool fromHistory)
@@ -283,7 +202,6 @@ public class Manager : MonoBehaviour {
         Button btn = act.GetComponent<Button>();
         btn.onClick.RemoveAllListeners();
         int count = Session.actionList.Count;        
-        btn.onClick.AddListener(() => SelectLinkItem(count, false));        
         content.GetComponent<RectTransform>().sizeDelta += new Vector2(200, 0);
         Transform actBtn = act.transform.GetChild(1);
         actBtn.gameObject.SetActive(true);
@@ -297,13 +215,7 @@ public class Manager : MonoBehaviour {
         {
             HistoryAction ha = new HistoryAction(ActionType.AddWatch, ActionType.RemoveWatch);
             HistoryManager.instance.AddHistory(ha);
-            SelectLinkItem(count, true);
         }
-        else
-        {
-            SelectLinkItem(count, fromHistory);
-        }
-
         
     }
 
@@ -314,7 +226,6 @@ public class Manager : MonoBehaviour {
         Button btn = act.GetComponent<Button>();
         btn.onClick.RemoveAllListeners();
         int count = Session.actionList.Count;
-        btn.onClick.AddListener(() => SelectLinkItem(count, false));
 
         content.GetComponent<RectTransform>().sizeDelta += new Vector2(200, 0);
 		Transform actBtn = act.transform.GetChild(1);
@@ -329,11 +240,6 @@ public class Manager : MonoBehaviour {
 		{
 			HistoryAction ha = new HistoryAction( ActionType.AddThink, ActionType.RemoveThink ); 
 			HistoryManager.instance.AddHistory(ha);
-            SelectLinkItem(count, true);
-        }
-        else
-        {
-            SelectLinkItem(count, fromHistory);
         }
     }
 
@@ -345,7 +251,6 @@ public class Manager : MonoBehaviour {
         Button btn = act.GetComponent<Button>();
         btn.onClick.RemoveAllListeners();
         int count = Session.actionList.Count;
-        btn.onClick.AddListener(() => SelectLinkItem(count, false));
 
         Link newLink = new Link(LinkType.Attack, true);
 		Session.actionList.Add(newLink);        
@@ -354,11 +259,6 @@ public class Manager : MonoBehaviour {
 		{
 			HistoryAction ha = new HistoryAction( ActionType.AddAttack, ActionType.RemoveAttack );
             HistoryManager.instance.AddHistory(ha);
-            SelectLinkItem(count, true);
-        }
-        else
-        {
-            SelectLinkItem(count, fromHistory);
         }
     }
 
@@ -370,7 +270,6 @@ public class Manager : MonoBehaviour {
         Button btn = act.GetComponent<Button>();
         btn.onClick.RemoveAllListeners();
         int count = Session.actionList.Count;
-        btn.onClick.AddListener(() => SelectLinkItem(count, false));
 
         Link newLink = new Link(LinkType.Dodge, true);
 		Session.actionList.Add(newLink);
@@ -379,11 +278,6 @@ public class Manager : MonoBehaviour {
 		{
 			HistoryAction ha = new HistoryAction( ActionType.AddDodge, ActionType.RemoveDodge ); 
 			HistoryManager.instance.AddHistory(ha);
-            SelectLinkItem(count, true);
-        }
-        else
-        {
-            SelectLinkItem(count, fromHistory);
         }
     }
 
@@ -407,4 +301,16 @@ public class Manager : MonoBehaviour {
         }
     }
 
+	public FightScriptable database;
+	public void WriteToDatabase()
+	{
+		database.linkList = new Link[Session.actionList.Count];
+		for ( int i = 0; i < Session.actionList.Count; i++ )
+			database.linkList[i] = (Link)Session.actionList[i];
+	}
+
+	public void FightClick()
+	{
+		WriteToDatabase();
+	}
 }

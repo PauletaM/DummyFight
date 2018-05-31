@@ -7,6 +7,7 @@ public class LinkDrag : MonoBehaviour, IDragHandler, IPointerUpHandler, IPointer
     private bool dragging;
     private Image img;
     private Transform content;
+	private int indexFrom;
 
     void Awake()
     {
@@ -20,6 +21,7 @@ public class LinkDrag : MonoBehaviour, IDragHandler, IPointerUpHandler, IPointer
         {
             Session.dragging = true;
             Session.currentDrag = transform.GetSiblingIndex();
+			indexFrom = Session.currentDrag;
             dragging = true;
             img.color = Color.yellow;
         }       
@@ -32,6 +34,9 @@ public class LinkDrag : MonoBehaviour, IDragHandler, IPointerUpHandler, IPointer
             Session.dragging = false;
             dragging = false;
             img.color = Color.white;
+
+			HistoryAction ha = new HistoryAction(ActionType.MoveOn, ActionType.MoveBack, transform.GetSiblingIndex(), indexFrom);
+			HistoryManager.instance.AddHistory(ha);
         }        
     }    
 
@@ -54,8 +59,12 @@ public class LinkDrag : MonoBehaviour, IDragHandler, IPointerUpHandler, IPointer
                 content.GetChild(Session.currentDrag).SetSiblingIndex(thisIndex);
                 transform.SetSiblingIndex(sessionindex);
 
-                Session.currentDrag = thisIndex;
+				Link thisLink  = (Link)Session.actionList[thisIndex];
+				Session.actionList[thisIndex] = Session.actionList[sessionindex];
+				Session.actionList[sessionindex] = thisLink;
+				Session.currentDrag = thisIndex;
             }
         }
     }
+		
 }

@@ -1,4 +1,5 @@
-﻿public class Link 
+﻿[System.Serializable]
+public class Link 
 {    
     public LinkType type;
 	public bool hasDisplay;
